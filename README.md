@@ -22,18 +22,6 @@ SkillSwap is a peer-to-peer skill exchange platform that enables users to share 
 - **Containerization:** Docker
 - **Version Control:** Git & GitHubs
 
-## 🔍 Repository Structure
-```
-📂 SkillSwap
- ├── 📂 src          # Source code
- ├── 📂 docs         # Documentation files
- ├── 📂 tests        # Unit and integration tests
- ├── 📄 README.md    # Project README
- ├── 📄 .gitignore   # Git ignore file
- ├── 📄 dockerfile   # Docker setup
- ├── 📄 package.json # Project dependencies
-```
-
 ## ⚖️ Code of Conduct
 - **Respect All Members** - No discrimination, harassment, or inappropriate behavior.
 - **Commit Regularly** - Each member should contribute code, documentation, or testing.
@@ -59,6 +47,7 @@ SkillSwap is a peer-to-peer skill exchange platform that enables users to share 
 ### Prerequisites
 - Install [Docker](https://www.docker.com/)
 - Install [Node.js](https://nodejs.org/)
+- Note that it is still a work in progress, so nothing may run just yet
 
 ### Clone the Repository
 ```sh
