@@ -20,7 +20,7 @@ SkillSwap is a peer-to-peer skill exchange platform that enables users to share 
 - **Backend:** Node.js / Express.js
 - **Database:** MongoDB
 - **Containerization:** Docker
-- **Version Control:** Git & GitHub
+- **Version Control:** Git & GitHubs
 
 ## 🔍 Repository Structure
 ```
