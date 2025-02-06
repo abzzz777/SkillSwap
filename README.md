@@ -44,6 +44,3 @@ This project is licensed under the MIT License.
 
 ## 📬 Contact
 For inquiries, reach out to any of the team members or create an issue in the GitHub repository.
-
----
-💡 *Let's build a community-driven skill exchange platform together!*
