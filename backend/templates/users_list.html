@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Users - SkillSwap{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Users</h1>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for user in users %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ user.username }}</h5>
+                <p class="card-text">
+                    <small class="text-muted">Member since: {{ user.created_at.strftime('%B %d, %Y') }}</small>
+                </p>
+                <p class="card-text">
+                    Skills offered: {{ user.skills_offered|length }}
+                </p>
+                <a href="{{ url_for('user_profile', user_id=user.id) }}" class="btn btn-primary">View Profile</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %} 

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to SkillSwap{% endblock %}
+
+{% block content %}
+<div class="jumbotron py-5 bg-light rounded-3 mb-4">
+    <div class="container">
+        <h1 class="display-4">Welcome to SkillSwap</h1>
+        <p class="lead">Share your skills and learn from others in our community-driven platform.</p>
+        {% if not current_user.is_authenticated %}
+        <p>
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Join Now</a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg ms-2">Login</a>
+        </p>
+        {% else %}
+        <p>
+            <a href="{{ url_for('add_skill') }}" class="btn btn-primary btn-lg">Share Your Skills</a>
+            <a href="{{ url_for('skills_list') }}" class="btn btn-outline-primary btn-lg ms-2">Browse Skills</a>
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <h2 class="mb-4">Recently Added Skills</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for skill in skills[:6] %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ skill.title }}</h5>
+                    <p class="card-text">{{ skill.description[:150] }}{% if skill.description|length > 150 %}...{% endif %}</p>
+                    <span class="badge bg-primary">{{ skill.category }}</span>
+                    <p class="card-text mt-2">
+                        <small class="text-muted">Offered by: 
+                            <a href="{{ url_for('user_profile', user_id=skill.teacher.id) }}">{{ skill.teacher.username }}</a>
+                        </small>
+                    </p>
+                    <a href="{{ url_for('skill_detail', skill_id=skill.id) }}" class="btn btn-outline-primary">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if skills|length > 6 %}
+    <div class="text-center mt-4">
+        <a href="{{ url_for('skills_list') }}" class="btn btn-primary">View All Skills</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 
