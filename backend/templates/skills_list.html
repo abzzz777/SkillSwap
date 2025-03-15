@@ -3,58 +3,38 @@
 {% block title %}Skills - SkillSwap{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h1>Available Skills</h1>
-    </div>
-    <div class="col-md-4 text-end">
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="animate-on-scroll">Available Skills</h1>
         {% if current_user.is_authenticated %}
-        <a href="{{ url_for('add_skill') }}" class="btn btn-primary">Offer a Skill</a>
+        <a href="{{ url_for('add_skill') }}" class="btn btn-primary animate-on-scroll">
+            <i class="fas fa-plus-circle me-2"></i>Add Skill
+        </a>
         {% endif %}
     </div>
-</div>
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Filter by Category</h5>
-                <form method="get" action="{{ url_for('skills_list') }}">
-                    {% for category in categories %}
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="category" value="{{ category }}"
-                               id="category-{{ category }}" {% if category in selected_categories %}checked{% endif %}>
-                        <label class="form-check-label" for="category-{{ category }}">
-                            {{ category }}
-                        </label>
+    <div class="row g-4">
+        {% for skill in skills %}
+        <div class="col-md-4">
+            <div class="card skill-card h-100 animate-on-scroll">
+                <div class="card-body">
+                    <div class="skill-icon mb-3">
+                        <i class="fas fa-{{ skill.icon }} fa-2x text-primary"></i>
                     </div>
-                    {% endfor %}
-                    <button type="submit" class="btn btn-sm btn-primary mt-3">Apply Filters</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-9">
-        <div class="row row-cols-1 row-cols-md-2 g-4">
-            {% for skill in skills %}
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ skill.title }}</h5>
-                        <p class="card-text">{{ skill.description[:150] }}{% if skill.description|length > 150 %}...{% endif %}</p>
-                        <span class="badge bg-primary">{{ skill.category }}</span>
-                        <p class="card-text mt-2">
-                            <small class="text-muted">Offered by: 
-                                <a href="{{ url_for('user_profile', user_id=skill.teacher.id) }}">{{ skill.teacher.username }}</a>
+                    <h5 class="card-title">{{ skill.name }}</h5>
+                    <p class="card-text text-muted">{{ skill.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('user_profile', user_id=skill.user.id) }}" class="text-decoration-none">
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i>{{ skill.user.username }}
                             </small>
-                        </p>
-                        <a href="{{ url_for('skill_detail', skill_id=skill.id) }}" class="btn btn-outline-primary">View Details</a>
+                        </a>
+                        <span class="badge bg-primary">{{ skill.category }}</span>
                     </div>
                 </div>
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %} 

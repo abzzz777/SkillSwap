@@ -1,52 +1,130 @@
 {% extends "base.html" %}
 
-{% block title %}Welcome to SkillSwap{% endblock %}
+{% block title %}SkillSwap - Share & Learn Skills{% endblock %}
 
 {% block content %}
-<div class="jumbotron py-5 bg-light rounded-3 mb-4">
+<div class="hero-section py-5">
     <div class="container">
-        <h1 class="display-4">Welcome to SkillSwap</h1>
-        <p class="lead">Share your skills and learn from others in our community-driven platform.</p>
-        {% if not current_user.is_authenticated %}
-        <p>
-            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Join Now</a>
-            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg ms-2">Login</a>
-        </p>
-        {% else %}
-        <p>
-            <a href="{{ url_for('add_skill') }}" class="btn btn-primary btn-lg">Share Your Skills</a>
-            <a href="{{ url_for('skills_list') }}" class="btn btn-outline-primary btn-lg ms-2">Browse Skills</a>
-        </p>
-        {% endif %}
-    </div>
-</div>
-
-<div class="container">
-    <h2 class="mb-4">Recently Added Skills</h2>
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        {% for skill in skills[:6] %}
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">{{ skill.title }}</h5>
-                    <p class="card-text">{{ skill.description[:150] }}{% if skill.description|length > 150 %}...{% endif %}</p>
-                    <span class="badge bg-primary">{{ skill.category }}</span>
-                    <p class="card-text mt-2">
-                        <small class="text-muted">Offered by: 
-                            <a href="{{ url_for('user_profile', user_id=skill.teacher.id) }}">{{ skill.teacher.username }}</a>
-                        </small>
-                    </p>
-                    <a href="{{ url_for('skill_detail', skill_id=skill.id) }}" class="btn btn-outline-primary">View Details</a>
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1 class="display-4 fw-bold mb-4 animate-on-scroll">Welcome to SkillSwap</h1>
+                <p class="lead mb-4 animate-on-scroll">Share your expertise and learn new skills from others in our vibrant community. Connect, collaborate, and grow together.</p>
+                {% if not current_user.is_authenticated %}
+                    <div class="d-flex gap-3 animate-on-scroll">
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Get Started</a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">Sign In</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-6">
+                <div class="card skill-stats-card animate-on-scroll">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h3 class="fw-bold">{{ total_users }}</h3>
+                                <p class="text-muted mb-0">Users</p>
+                            </div>
+                            <div class="col-4">
+                                <h3 class="fw-bold">{{ total_skills }}</h3>
+                                <p class="text-muted mb-0">Skills</p>
+                            </div>
+                            <div class="col-4">
+                                <h3 class="fw-bold">{{ total_exchanges }}</h3>
+                                <p class="text-muted mb-0">Exchanges</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
-
-    {% if skills|length > 6 %}
-    <div class="text-center mt-4">
-        <a href="{{ url_for('skills_list') }}" class="btn btn-primary">View All Skills</a>
-    </div>
-    {% endif %}
 </div>
+
+<section class="featured-skills py-5">
+    <div class="container">
+        <h2 class="section-title text-center mb-5 animate-on-scroll">Featured Skills</h2>
+        <div class="row g-4">
+            {% for skill in featured_skills %}
+            <div class="col-md-4">
+                <div class="card skill-card h-100 animate-on-scroll">
+                    <div class="card-body">
+                        <div class="skill-icon mb-3">
+                            <i class="fas fa-{{ skill.icon }} fa-2x"></i>
+                        </div>
+                        <h5 class="card-title">{{ skill.name }}</h5>
+                        <p class="card-text text-muted">{{ skill.description }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('user_profile', user_id=skill.user.id) }}" class="text-decoration-none">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>{{ skill.user.username }}
+                                </small>
+                            </a>
+                            <span class="badge bg-primary">{{ skill.category }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="categories py-5 bg-light">
+    <div class="container">
+        <h2 class="section-title text-center mb-5 animate-on-scroll">Explore Categories</h2>
+        <div class="row g-4">
+            {% for category in categories %}
+            <div class="col-6 col-md-3">
+                <div class="category-card animate-on-scroll" onclick="toggleCategory(this)">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="fas fa-{{ category.icon }} fa-2x mb-3"></i>
+                            <h5 class="card-title">{{ category.name }}</h5>
+                            <p class="card-text text-muted">{{ category.count }} skills</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="cta-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="mb-4 animate-on-scroll">Ready to Share Your Skills?</h2>
+                <p class="lead mb-4 animate-on-scroll">Join our community and start sharing your expertise with others.</p>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('add_skill') }}" class="btn btn-primary btn-lg animate-on-scroll">
+                        <i class="fas fa-plus-circle me-2"></i>Add Your Skill
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg animate-on-scroll">
+                        <i class="fas fa-user-plus me-2"></i>Join Now
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize animations for elements with animate-on-scroll class
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    });
+
+    animatedElements.forEach(el => observer.observe(el));
+});
+</script>
 {% endblock %} 

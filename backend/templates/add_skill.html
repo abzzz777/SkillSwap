@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Add Skill - SkillSwap{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card animate-on-scroll">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Share Your Skill</h2>
+                    <form method="POST" action="{{ url_for('add_skill') }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Skill Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.name }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                            <div class="form-text text-muted">
+                                Describe what you'll teach, your experience level, and what students can expect to learn.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="icon" class="form-label">Icon</label>
+                            <select class="form-select" id="icon" name="icon" required>
+                                <option value="graduation-cap">Education</option>
+                                <option value="code">Programming</option>
+                                <option value="palette">Design</option>
+                                <option value="language">Language</option>
+                                <option value="music">Music</option>
+                                <option value="camera">Photography</option>
+                                <option value="brush">Art</option>
+                                <option value="dumbbell">Fitness</option>
+                            </select>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-2"></i>Add Skill
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

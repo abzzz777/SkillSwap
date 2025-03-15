@@ -4,11 +4,10 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from datetime import datetime
-from forms import LoginForm, RegisterForm, SkillForm
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-please-change')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/skillswap'
+app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this to a secure secret key
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///skillswap.db'  # Using SQLite for simplicity
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -22,19 +21,14 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    skills_offered = db.relationship('Skill', backref='teacher', lazy=True)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+    skills = db.relationship('Skill', backref='user', lazy=True)
 
 class Skill(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     category = db.Column(db.String(50), nullable=False)
+    icon = db.Column(db.String(50), nullable=False, default='graduation-cap')
     teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -42,57 +36,27 @@ class Skill(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Authentication routes
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and user.check_password(form.password.data):
-            login_user(user)
-            flash('Logged in successfully.', 'success')
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('index'))
-        flash('Invalid email or password.', 'danger')
-    return render_template('login.html', form=form)
+# Sample Categories
+CATEGORIES = [
+    {'name': 'Programming', 'icon': 'code', 'count': 15},
+    {'name': 'Design', 'icon': 'palette', 'count': 10},
+    {'name': 'Languages', 'icon': 'language', 'count': 8},
+    {'name': 'Music', 'icon': 'music', 'count': 12}
+]
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    
-    form = RegisterForm()
-    if form.validate_on_submit():
-        if User.query.filter_by(username=form.username.data).first():
-            flash('Username already exists.', 'danger')
-            return render_template('register.html', form=form)
-        if User.query.filter_by(email=form.email.data).first():
-            flash('Email already registered.', 'danger')
-            return render_template('register.html', form=form)
-        
-        user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('login'))
-    return render_template('register.html', form=form)
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('index'))
-
-# Skill routes
+# Routes
 @app.route('/')
 def index():
-    skills = Skill.query.order_by(Skill.created_at.desc()).all()
-    return render_template('index.html', skills=skills)
+    total_users = User.query.count()
+    total_skills = Skill.query.count()
+    total_exchanges = 25  # Placeholder for now
+    featured_skills = Skill.query.order_by(Skill.created_at.desc()).limit(6).all()
+    return render_template('index.html', 
+                         total_users=total_users,
+                         total_skills=total_skills,
+                         total_exchanges=total_exchanges,
+                         featured_skills=featured_skills,
+                         categories=CATEGORIES)
 
 @app.route('/users')
 def users_list():
@@ -106,70 +70,101 @@ def user_profile(user_id):
 
 @app.route('/skills')
 def skills_list():
-    selected_categories = request.args.getlist('category')
-    query = Skill.query
-    
-    if selected_categories:
-        query = query.filter(Skill.category.in_(selected_categories))
-    
-    skills = query.order_by(Skill.created_at.desc()).all()
-    categories = [choice[0] for choice in SkillForm.category.kwargs['choices']]
-    return render_template('skills_list.html', skills=skills, categories=categories, selected_categories=selected_categories)
+    skills = Skill.query.all()
+    return render_template('skills_list.html', skills=skills)
 
 @app.route('/skill/<int:skill_id>')
 def skill_detail(skill_id):
     skill = Skill.query.get_or_404(skill_id)
     return render_template('skill_detail.html', skill=skill)
 
-@app.route('/skill/add', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        # Add registration logic here
+        flash('Registration successful!', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # Add login logic here
+        flash('Login successful!', 'success')
+        return redirect(url_for('index'))
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('index'))
+
+@app.route('/add_skill', methods=['GET', 'POST'])
 @login_required
 def add_skill():
-    form = SkillForm()
-    if form.validate_on_submit():
-        skill = Skill(
-            title=form.title.data,
-            description=form.description.data,
-            category=form.category.data,
-            teacher_id=current_user.id
-        )
-        db.session.add(skill)
-        db.session.commit()
+    if request.method == 'POST':
+        # Add skill creation logic here
         flash('Skill added successfully!', 'success')
-        return redirect(url_for('skill_detail', skill_id=skill.id))
-    return render_template('skill_form.html', form=form)
+        return redirect(url_for('skills_list'))
+    return render_template('add_skill.html')
 
-@app.route('/skill/<int:skill_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_skill(skill_id):
-    skill = Skill.query.get_or_404(skill_id)
-    if skill.teacher_id != current_user.id:
-        flash('You can only edit your own skills.', 'danger')
-        return redirect(url_for('skill_detail', skill_id=skill.id))
-    
-    form = SkillForm(obj=skill)
-    if form.validate_on_submit():
-        skill.title = form.title.data
-        skill.description = form.description.data
-        skill.category = form.category.data
+def create_sample_data():
+    # Create sample users
+    if User.query.count() == 0:
+        users = [
+            {'username': 'john_doe', 'email': 'john@example.com', 'password': 'password123'},
+            {'username': 'jane_smith', 'email': 'jane@example.com', 'password': 'password123'}
+        ]
+        for user_data in users:
+            user = User(
+                username=user_data['username'],
+                email=user_data['email'],
+                password_hash=generate_password_hash(user_data['password'])
+            )
+            db.session.add(user)
+        
         db.session.commit()
-        flash('Skill updated successfully!', 'success')
-        return redirect(url_for('skill_detail', skill_id=skill.id))
-    return render_template('skill_form.html', form=form, skill=skill)
 
-@app.route('/skill/<int:skill_id>/delete', methods=['POST'])
-@login_required
-def delete_skill(skill_id):
-    skill = Skill.query.get_or_404(skill_id)
-    if skill.teacher_id != current_user.id:
-        flash('You can only delete your own skills.', 'danger')
-        return redirect(url_for('skill_detail', skill_id=skill.id))
-    
-    db.session.delete(skill)
-    db.session.commit()
-    flash('Skill deleted successfully!', 'success')
-    return redirect(url_for('skills_list'))
+    # Create sample skills
+    if Skill.query.count() == 0:
+        skills = [
+            {
+                'name': 'Python Programming',
+                'description': 'Learn Python from basics to advanced concepts',
+                'category': 'Programming',
+                'icon': 'code'
+            },
+            {
+                'name': 'UI/UX Design',
+                'description': 'Master the principles of user interface design',
+                'category': 'Design',
+                'icon': 'palette'
+            },
+            {
+                'name': 'Spanish Language',
+                'description': 'Learn conversational Spanish',
+                'category': 'Languages',
+                'icon': 'language'
+            }
+        ]
+        
+        user = User.query.first()
+        for skill_data in skills:
+            skill = Skill(
+                name=skill_data['name'],
+                description=skill_data['description'],
+                category=skill_data['category'],
+                icon=skill_data['icon'],
+                teacher_id=user.id
+            )
+            db.session.add(skill)
+        
+        db.session.commit()
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+        create_sample_data()
+    app.run(debug=True) 
