@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Admin Navigation</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_verification_requests') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-check-circle me-2"></i>Verification Requests
+                        <span class="badge bg-danger float-end">{{ pending_verifications }}</span>
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-users me-2"></i>User Management
+                    </a>
+                    <a href="{{ url_for('admin_skills') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-graduation-cap me-2"></i>Skill Management
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-cog me-2"></i>System Settings
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Settings Categories</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for category in categorized_settings.keys() %}
+                    <a href="#{{ category }}" class="list-group-item list-group-item-action">
+                        {% if category == 'general' %}
+                            <i class="fas fa-wrench me-2"></i>
+                        {% elif category == 'verification' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% elif category == 'email' %}
+                            <i class="fas fa-envelope me-2"></i>
+                        {% elif category == 'appearance' %}
+                            <i class="fas fa-palette me-2"></i>
+                        {% else %}
+                            <i class="fas fa-cog me-2"></i>
+                        {% endif %}
+                        {{ category|title }}
+                        <span class="badge bg-secondary float-end">{{ categorized_settings[category]|length }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">System Settings</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Configure system-wide settings for the application. These settings affect the behavior and appearance of the platform.
+                    </p>
+                    
+                    <form action="{{ url_for('admin_settings_update') }}" method="POST">
+                        {% for category, settings in categorized_settings.items() %}
+                        <div class="mb-4" id="{{ category }}">
+                            <h5 class="border-bottom pb-2">{{ category|title }} Settings</h5>
+                            
+                            {% for setting in settings %}
+                            <div class="mb-3">
+                                <label for="setting_{{ setting.key }}" class="form-label">
+                                    {{ setting.key.split('.')[-1]|replace('_', ' ')|title }}
+                                </label>
+                                
+                                {% if setting.data_type == 'boolean' %}
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" id="setting_{{ setting.key }}" name="setting_{{ setting.key }}" value="true" 
+                                    {% if setting.value and setting.value.lower() in ('true', '1', 'yes') %}checked{% endif %}>
+                                </div>
+                                {% elif setting.data_type == 'integer' %}
+                                <input type="number" class="form-control" id="setting_{{ setting.key }}" name="setting_{{ setting.key }}" value="{{ setting.value }}">
+                                {% elif setting.data_type == 'text' %}
+                                <textarea class="form-control" id="setting_{{ setting.key }}" name="setting_{{ setting.key }}" rows="3">{{ setting.value }}</textarea>
+                                {% else %}
+                                <input type="text" class="form-control" id="setting_{{ setting.key }}" name="setting_{{ setting.key }}" value="{{ setting.value }}">
+                                {% endif %}
+                                
+                                {% if setting.description %}
+                                <div class="form-text">{{ setting.description }}</div>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <p class="text-center text-muted py-3">
+                                <i class="fas fa-info-circle me-2"></i>No settings in this category
+                            </p>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-cog fa-3x mb-3"></i>
+                            <p>No system settings found. Default values will be used.</p>
+                            <p>You can add new settings by using the set_system_setting() function.</p>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Add New Setting</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_settings_update') }}" method="POST">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="new_key" class="form-label">Setting Key</label>
+                                    <input type="text" class="form-control" id="new_key" name="new_key" placeholder="category.setting_name">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="new_value" class="form-label">Value</label>
+                                    <input type="text" class="form-control" id="new_value" name="new_value">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="new_type" class="form-label">Data Type</label>
+                                    <select class="form-select" id="new_type" name="new_type">
+                                        <option value="string">String</option>
+                                        <option value="integer">Integer</option>
+                                        <option value="boolean">Boolean</option>
+                                        <option value="text">Text</option>
+                                        <option value="json">JSON</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new_description" class="form-label">Description</label>
+                            <textarea class="form-control" id="new_description" name="new_description" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fas fa-plus me-2"></i>Add Setting
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

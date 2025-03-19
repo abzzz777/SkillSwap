@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }}'s Profile - SkillSwap{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card animate-on-scroll">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-circle fa-5x mb-3 text-primary"></i>
+                    <h3 class="card-title">{{ user.username }}</h3>
+                    <p class="text-muted">Member since {{ user.created_at.strftime('%B %Y') }}</p>
+                    <p class="card-text">{{ user.email }}</p>
+                    {% if user.is_verified %}
+                    <div class="mb-3">
+                        <span class="badge bg-success mb-2">
+                            <i class="fas fa-check-circle me-1"></i>Verified User
+                        </span>
+                        <small class="d-block text-muted">This user's identity and credentials have been verified by SkillSwap administrators.</small>
+                    </div>
+                    {% endif %}
+                    {% if current_user.is_authenticated and current_user.id == user.id %}
+                    <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </a>
+                    {% elif current_user.is_authenticated %}
+                    <a href="{{ url_for('message_compose', recipient_id=user.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-envelope me-2"></i>Send Message
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card animate-on-scroll">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Skills Offered</h4>
+                    {% if user.skills %}
+                        <div class="row g-4">
+                            {% for skill in user.skills %}
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-{{ skill.icon }} fa-2x me-3 text-primary"></i>
+                                            <h5 class="card-title mb-0">{{ skill.name }}</h5>
+                                        </div>
+                                        <p class="card-text text-muted">{{ skill.description }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-primary">{{ skill.category }}</span>
+                                            {% if current_user.is_authenticated and current_user.id == skill.teacher_id %}
+                                            <div class="btn-group">
+                                                <a href="{{ url_for('edit_skill', skill_id=skill.id) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteSkillModal{{ skill.id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No skills offered yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals - Placed outside of the main content structure -->
+{% if user.skills %}
+    {% for skill in user.skills %}
+        {% if current_user.is_authenticated and current_user.id == skill.teacher_id %}
+        <!-- Delete Skill Modal -->
+        <div class="modal fade" id="deleteSkillModal{{ skill.id }}" tabindex="-1" aria-labelledby="deleteSkillModalLabel{{ skill.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteSkillModalLabel{{ skill.id }}">Confirm Delete</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to delete the skill "{{ skill.name }}"? This action cannot be undone.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form action="{{ url_for('delete_skill', skill_id=skill.id) }}" method="POST">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+{% endblock %} 

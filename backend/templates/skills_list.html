@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Skills - SkillSwap{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="animate-on-scroll">Available Skills</h1>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('add_skill') }}" class="btn btn-primary animate-on-scroll">
+            <i class="fas fa-plus-circle me-2"></i>Add Skill
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="row g-4">
+        {% for skill in skills %}
+        <div class="col-md-4">
+            <div class="card skill-card h-100 animate-on-scroll">
+                <div class="card-body">
+                    <div class="skill-icon mb-3">
+                        <i class="fas fa-{{ skill.icon }} fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">{{ skill.name }}</h5>
+                    <p class="card-text text-muted">{{ skill.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('user_profile', user_id=skill.user.id) }}" class="text-decoration-none">
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i>{{ skill.user.username }}
+                                {% if skill.user.is_verified %}
+                                <i class="fas fa-check-circle text-success" data-bs-toggle="tooltip" data-bs-placement="top"
+                                   title="Verified teacher"></i>
+                                {% endif %}
+                            </small>
+                        </a>
+                        <span class="badge bg-primary">{{ skill.category }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

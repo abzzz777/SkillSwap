@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Admin Navigation</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_verification_requests') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-check-circle me-2"></i>Verification Requests
+                        <span class="badge bg-danger float-end">{{ pending_verifications }}</span>
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-users me-2"></i>User Management
+                    </a>
+                    <a href="{{ url_for('admin_skills') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-graduation-cap me-2"></i>Skill Management
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cog me-2"></i>System Settings
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Filter Skills</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_skills') }}" method="GET">
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="all" {% if request.args.get('category') == 'all' or not request.args.get('category') %}selected{% endif %}>All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category }}" {% if request.args.get('category') == category %}selected{% endif %}>{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search" placeholder="Skill name or description" value="{{ request.args.get('search', '') }}">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Skill Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-12">
+                            <h3 class="text-primary">{{ skills_count }}</h3>
+                            <small class="text-muted">Total Skills</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-1 small text-muted fw-bold">By Category</div>
+                    {% for category, count in skills_by_category.items() %}
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>{{ category }}</span>
+                        <span class="badge bg-primary">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Skills</h5>
+                    <div>
+                        {% if skills %}
+                        <a href="{{ url_for('admin_export_skills') }}" class="btn btn-sm btn-light">
+                            <i class="fas fa-download me-1"></i>Export
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if skills %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Skill</th>
+                                <th>Category</th>
+                                <th>Teacher</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for skill in skills %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fas fa-{{ skill.icon|default('graduation-cap') }} fa-2x text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ skill.name }}</h6>
+                                            <small class="text-muted">#{{ skill.id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ skill.category }}</span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin_user_detail', user_id=skill.teacher_id) }}">
+                                        {{ skill.teacher.username }}
+                                    </a>
+                                </td>
+                                <td>{{ skill.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('skill_detail', skill_id=skill.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteSkillModal{{ skill.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Delete Skill Modal -->
+                                    <div class="modal fade" id="deleteSkillModal{{ skill.id }}" tabindex="-1" aria-labelledby="deleteSkillModalLabel{{ skill.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteSkillModalLabel{{ skill.id }}">Confirm Deletion</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete the skill <strong>{{ skill.name }}</strong>?</p>
+                                                    <p class="text-danger">This action cannot be undone and will affect any users enrolled in this skill.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <a href="{{ url_for('admin_skill_delete', skill_id=skill.id) }}" class="btn btn-danger">Delete Skill</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if pages > 1 %}
+                <div class="card-footer d-flex justify-content-center">
+                    <nav aria-label="Skill pagination">
+                        <ul class="pagination mb-0">
+                            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_skills', page=page-1, category=request.args.get('category'), search=request.args.get('search')) }}">Previous</a>
+                            </li>
+                            
+                            {% for p in range(1, pages + 1) %}
+                            <li class="page-item {% if p == page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_skills', page=p, category=request.args.get('category'), search=request.args.get('search')) }}">{{ p }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            <li class="page-item {% if page == pages %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_skills', page=page+1, category=request.args.get('category'), search=request.args.get('search')) }}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-graduation-cap fa-3x text-muted mb-3"></i>
+                    <p class="lead mb-0">No skills found matching your criteria</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

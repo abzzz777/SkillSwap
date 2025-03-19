@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Skill - SkillSwap{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card animate-on-scroll">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Edit Skill</h2>
+                    <form method="POST" action="{{ url_for('edit_skill', skill_id=skill.id) }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Skill Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ skill.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category }}" {% if category == skill.category %}selected{% endif %}>{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required>{{ skill.description }}</textarea>
+                            <div class="form-text text-muted">
+                                Describe what you'll teach, your experience level, and what students can expect to learn.
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('user_profile', user_id=current_user.id) }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

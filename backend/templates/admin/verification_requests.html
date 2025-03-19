@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Admin Navigation</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_verification_requests') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-check-circle me-2"></i>Verification Requests
+                        <span class="badge bg-danger float-end">{{ stats.pending_verifications }}</span>
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-users me-2"></i>User Management
+                    </a>
+                    <a href="{{ url_for('admin_skills') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-graduation-cap me-2"></i>Skill Management
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cog me-2"></i>System Settings
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Filter Requests</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_verification_requests') }}" method="GET">
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="all" {% if request.args.get('status') == 'all' or not request.args.get('status') %}selected{% endif %}>All Statuses</option>
+                                <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="approved" {% if request.args.get('status') == 'approved' %}selected{% endif %}>Approved</option>
+                                <option value="rejected" {% if request.args.get('status') == 'rejected' %}selected{% endif %}>Rejected</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="date_range" class="form-label">Date Range</label>
+                            <select class="form-select" id="date_range" name="date_range">
+                                <option value="all" {% if request.args.get('date_range') == 'all' or not request.args.get('date_range') %}selected{% endif %}>All Time</option>
+                                <option value="today" {% if request.args.get('date_range') == 'today' %}selected{% endif %}>Today</option>
+                                <option value="week" {% if request.args.get('date_range') == 'week' %}selected{% endif %}>This Week</option>
+                                <option value="month" {% if request.args.get('date_range') == 'month' %}selected{% endif %}>This Month</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Search Username</label>
+                            <input type="text" class="form-control" id="search" name="search" value="{{ request.args.get('search', '') }}">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3 class="text-primary">{{ stats.pending_verifications }}</h3>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="text-success">{{ stats.approved_verifications }}</h3>
+                            <small class="text-muted">Approved</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="text-danger">{{ stats.rejected_verifications }}</h3>
+                            <small class="text-muted">Rejected</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Verification Requests</h5>
+                    {% if verification_requests %}
+                    <a href="{{ url_for('admin_export_verifications') }}" class="btn btn-sm btn-light">
+                        <i class="fas fa-download me-1"></i>Export
+                    </a>
+                    {% endif %}
+                </div>
+                
+                {% if verification_requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Document</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in verification_requests %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('admin_user_detail', user_id=request.user_id) }}">
+                                        {{ request.user.username }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin_view_document', request_id=request.id) }}" target="_blank">
+                                        <i class="fas fa-file-alt me-1"></i>{{ request.document_filename }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if request.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif request.status == 'approved' %}
+                                        <span class="badge bg-success">Approved</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ request.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('admin_verification_detail', request_id=request.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if request.status == 'pending' %}
+                                        <a href="{{ url_for('admin_approve_verification', request_id=request.id) }}" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin_reject_verification', request_id=request.id) }}" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                        {% else %}
+                                        <a href="{{ url_for('admin_reset_verification', request_id=request.id) }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-undo"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if pages > 1 %}
+                <div class="card-footer d-flex justify-content-center">
+                    <nav aria-label="Verification requests pagination">
+                        <ul class="pagination mb-0">
+                            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_verification_requests', page=page-1, status=request.args.get('status'), date_range=request.args.get('date_range'), search=request.args.get('search')) }}">Previous</a>
+                            </li>
+                            
+                            {% for p in range(1, pages + 1) %}
+                            <li class="page-item {% if p == page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_verification_requests', page=p, status=request.args.get('status'), date_range=request.args.get('date_range'), search=request.args.get('search')) }}">{{ p }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            <li class="page-item {% if page == pages %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_verification_requests', page=page+1, status=request.args.get('status'), date_range=request.args.get('date_range'), search=request.args.get('search')) }}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <p class="lead mb-0">No verification requests found matching your criteria</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

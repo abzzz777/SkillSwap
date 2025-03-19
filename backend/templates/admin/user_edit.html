@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Admin Navigation</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_verification_requests') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-check-circle me-2"></i>Verification Requests
+                        <span class="badge bg-danger float-end">{{ pending_verifications }}</span>
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-users me-2"></i>User Management
+                    </a>
+                    <a href="{{ url_for('admin_skills') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-graduation-cap me-2"></i>Skill Management
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cog me-2"></i>System Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_users') }}">Users</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_user_detail', user_id=user.id) }}">{{ user.username }}</a></li>
+                    <li class="breadcrumb-item active">Edit User</li>
+                </ol>
+            </nav>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Edit User: {{ user.username }}</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_user_edit', user_id=user.id) }}" method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password">
+                                    <div class="form-text">Leave blank to keep current password</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Account Status</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="is_verified" name="is_verified" value="1" {% if user.is_verified %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_verified">Verified Account</label>
+                                    </div>
+                                    <div class="form-text">Mark the user as verified to give them verification badge</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Admin Status</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="is_admin" name="is_admin" value="1" {% if user.is_admin %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_admin">Administrator</label>
+                                    </div>
+                                    <div class="form-text">Administrators have access to the admin portal and all management features</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Account Information</label>
+                                    <div class="card card-body bg-light">
+                                        <div class="mb-2">
+                                            <small class="text-muted d-block">User ID</small>
+                                            <span>{{ user.id }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small class="text-muted d-block">Created On</small>
+                                            <span>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to User
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Admin Navigation</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_verification_requests') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-check-circle me-2"></i>Verification Requests
+                        <span class="badge bg-danger float-end">{{ pending_verifications }}</span>
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-users me-2"></i>User Management
+                    </a>
+                    <a href="{{ url_for('admin_skills') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-graduation-cap me-2"></i>Skill Management
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cog me-2"></i>System Settings
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin_verification_requests') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-check-circle me-2"></i>Review Verifications
+                        </a>
+                        <a href="{{ url_for('admin_users_create') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus me-2"></i>Add New User
+                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-download me-2"></i>Export Data
+                            </button>
+                            <ul class="dropdown-menu w-100">
+                                <li><a class="dropdown-item" href="{{ url_for('admin_export_users') }}">Export Users</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_export_verifications') }}">Export Verifications</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Users</h5>
+                            <h2 class="display-4">{{ stats.total_users }}</h2>
+                            <p class="card-text">
+                                <small>{{ stats.new_users_today }} new today</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Skills</h5>
+                            <h2 class="display-4">{{ stats.total_skills }}</h2>
+                            <p class="card-text">
+                                <small>{{ stats.new_skills_today }} new today</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-info text-white shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Verifications</h5>
+                            <h2 class="display-4">{{ stats.total_verifications }}</h2>
+                            <p class="card-text">
+                                <small>{{ stats.pending_verifications }} pending</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent User Activity</h5>
+                            <a href="{{ url_for('admin_activity_log') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Activity</th>
+                                        <th>Date/Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for activity in recent_activity %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('admin_user_detail', user_id=activity.user_id) }}">
+                                                {{ activity.username }}
+                                            </a>
+                                        </td>
+                                        <td>{{ activity.description }}</td>
+                                        <td>{{ activity.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Pending Verifications</h5>
+                            <a href="{{ url_for('admin_verification_requests') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for request in pending_verification_requests %}
+                            <a href="{{ url_for('admin_verification_detail', request_id=request.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ request.user.username }}</h6>
+                                    <small>{{ request.created_at.strftime('%Y-%m-%d') }}</small>
+                                </div>
+                                <p class="mb-1">{{ request.document_filename }}</p>
+                            </a>
+                            {% else %}
+                            <div class="list-group-item text-center text-muted py-3">
+                                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                <p class="mb-0">No pending verification requests</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">New Users</h5>
+                            <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for user in recent_users %}
+                            <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ user.username }}</h6>
+                                    <small>{{ user.created_at.strftime('%Y-%m-%d') }}</small>
+                                </div>
+                                <p class="mb-1">{{ user.email }}</p>
+                            </a>
+                            {% else %}
+                            <div class="list-group-item text-center text-muted py-3">
+                                <i class="fas fa-users fa-2x mb-2"></i>
+                                <p class="mb-0">No new users</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

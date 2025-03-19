@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Admin Navigation</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_verification_requests') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-check-circle me-2"></i>Verification Requests
+                        <span class="badge bg-danger float-end">{{ stats.pending_verifications }}</span>
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-users me-2"></i>User Management
+                    </a>
+                    <a href="{{ url_for('admin_skills') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-graduation-cap me-2"></i>Skill Management
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cog me-2"></i>System Settings
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Filter Users</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_users') }}" method="GET">
+                        <div class="mb-3">
+                            <label for="verified" class="form-label">Verification Status</label>
+                            <select class="form-select" id="verified" name="verified">
+                                <option value="all" {% if request.args.get('verified') == 'all' or not request.args.get('verified') %}selected{% endif %}>All Users</option>
+                                <option value="verified" {% if request.args.get('verified') == 'verified' %}selected{% endif %}>Verified Only</option>
+                                <option value="unverified" {% if request.args.get('verified') == 'unverified' %}selected{% endif %}>Unverified Only</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">User Role</label>
+                            <select class="form-select" id="role" name="role">
+                                <option value="all" {% if request.args.get('role') == 'all' or not request.args.get('role') %}selected{% endif %}>All Roles</option>
+                                <option value="admin" {% if request.args.get('role') == 'admin' %}selected{% endif %}>Admins Only</option>
+                                <option value="regular" {% if request.args.get('role') == 'regular' %}selected{% endif %}>Regular Users Only</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="date_joined" class="form-label">Date Joined</label>
+                            <select class="form-select" id="date_joined" name="date_joined">
+                                <option value="all" {% if request.args.get('date_joined') == 'all' or not request.args.get('date_joined') %}selected{% endif %}>All Time</option>
+                                <option value="today" {% if request.args.get('date_joined') == 'today' %}selected{% endif %}>Today</option>
+                                <option value="week" {% if request.args.get('date_joined') == 'week' %}selected{% endif %}>This Week</option>
+                                <option value="month" {% if request.args.get('date_joined') == 'month' %}selected{% endif %}>This Month</option>
+                                <option value="year" {% if request.args.get('date_joined') == 'year' %}selected{% endif %}>This Year</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search" placeholder="Username or email" value="{{ request.args.get('search', '') }}">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">User Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <h3 class="text-primary">{{ stats.total_users }}</h3>
+                            <small class="text-muted">Total Users</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="text-success">{{ stats.verified_users }}</h3>
+                            <small class="text-muted">Verified Users</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <h3 class="text-danger">{{ stats.admin_users }}</h3>
+                            <small class="text-muted">Admins</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="text-info">{{ stats.new_users_today }}</h3>
+                            <small class="text-muted">New Today</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Users</h5>
+                    <div>
+                        <a href="{{ url_for('admin_users_create') }}" class="btn btn-sm btn-light me-2">
+                            <i class="fas fa-plus me-1"></i>Add User
+                        </a>
+                        {% if users %}
+                        <a href="{{ url_for('admin_export_users') }}" class="btn btn-sm btn-light">
+                            <i class="fas fa-download me-1"></i>Export
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if users %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Status</th>
+                                <th>Email</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fas fa-user-circle fa-2x text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ user.username }}</h6>
+                                            <small class="text-muted">#{{ user.id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        {% if user.is_verified %}
+                                            <span class="badge bg-success">Verified</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Not Verified</span>
+                                        {% endif %}
+                                        
+                                        {% if user.is_admin %}
+                                            <span class="badge bg-danger">Admin</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin_user_edit', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Delete User Modal -->
+                                    <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-labelledby="deleteUserModalLabel{{ user.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteUserModalLabel{{ user.id }}">Confirm Deletion</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete the user <strong>{{ user.username }}</strong>?</p>
+                                                    <p class="text-danger">This action cannot be undone and will delete all user data including skills and verification requests.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <a href="{{ url_for('admin_user_delete', user_id=user.id) }}" class="btn btn-danger">Delete User</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if pages > 1 %}
+                <div class="card-footer d-flex justify-content-center">
+                    <nav aria-label="User pagination">
+                        <ul class="pagination mb-0">
+                            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_users', page=page-1, verified=request.args.get('verified'), role=request.args.get('role'), date_joined=request.args.get('date_joined'), search=request.args.get('search')) }}">Previous</a>
+                            </li>
+                            
+                            {% for p in range(1, pages + 1) %}
+                            <li class="page-item {% if p == page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_users', page=p, verified=request.args.get('verified'), role=request.args.get('role'), date_joined=request.args.get('date_joined'), search=request.args.get('search')) }}">{{ p }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            <li class="page-item {% if page == pages %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_users', page=page+1, verified=request.args.get('verified'), role=request.args.get('role'), date_joined=request.args.get('date_joined'), search=request.args.get('search')) }}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <p class="lead mb-0">No users found matching your criteria</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

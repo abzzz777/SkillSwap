@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Inbox - SkillSwap{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Messages</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('messages_inbox') }}" class="list-group-item list-group-item-action {% if active_tab == 'inbox' %}active{% endif %}">
+                        <i class="fas fa-inbox me-2"></i>Inbox
+                        {% if unread_count > 0 %}
+                        <span class="badge bg-danger float-end">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('messages_sent') }}" class="list-group-item list-group-item-action {% if active_tab == 'sent' %}active{% endif %}">
+                        <i class="fas fa-paper-plane me-2"></i>Sent
+                    </a>
+                    <a href="{{ url_for('message_compose') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-edit me-2"></i>Compose
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Inbox</h5>
+                </div>
+                
+                {% if messages %}
+                <div class="list-group list-group-flush">
+                    {% for message in messages %}
+                    <a href="{{ url_for('message_view', message_id=message.id) }}" class="list-group-item list-group-item-action {% if not message.read %}fw-bold list-group-item-primary{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ message.subject }}</h6>
+                                <p class="mb-1 text-muted small">From: {{ message.sender.username }}</p>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ message.timestamp.strftime('%b %d, %Y %H:%M') }}</small>
+                                {% if not message.read %}
+                                <span class="ms-2 badge bg-primary">New</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <p class="lead mb-0">Your inbox is empty</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

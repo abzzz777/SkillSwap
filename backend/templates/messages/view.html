@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{{ message.subject }} - SkillSwap{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Messages</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('messages_inbox') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-inbox me-2"></i>Inbox
+                        {% if unread_count > 0 %}
+                        <span class="badge bg-danger float-end">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('messages_sent') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-paper-plane me-2"></i>Sent
+                    </a>
+                    <a href="{{ url_for('message_compose') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-edit me-2"></i>Compose
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Quick Reply -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Quick Reply</h5>
+                </div>
+                <div class="card-body">
+                    {% set reply_to = message.sender if message.recipient_id == current_user.id else message.recipient %}
+                    <form action="{{ url_for('message_compose') }}" method="POST">
+                        <input type="hidden" name="recipient_id" value="{{ reply_to.id }}">
+                        <input type="hidden" name="subject" value="Re: {{ message.subject }}">
+                        <div class="mb-3">
+                            <textarea class="form-control" name="content" rows="4" placeholder="Type your reply here..." required></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-reply me-2"></i>Send Reply
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ message.subject }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <strong>From:</strong> {{ message.sender.username }}
+                            <br>
+                            <strong>To:</strong> {{ message.recipient.username }}
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ message.timestamp.strftime('%b %d, %Y %H:%M') }}</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="message-content">
+                        {{ message.content|nl2br }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conversation History -->
+            {% if conversation|length > 1 %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Conversation History</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for msg in conversation %}
+                        {% if msg.id != message.id %}
+                        <div class="list-group-item {% if msg.sender_id == current_user.id %}bg-light{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>
+                                        {% if msg.sender_id == current_user.id %}
+                                        You → {{ msg.recipient.username }}
+                                        {% else %}
+                                        {{ msg.sender.username }} → You
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                                <small class="text-muted">{{ msg.timestamp.strftime('%b %d, %Y %H:%M') }}</small>
+                            </div>
+                            <div class="mb-2">
+                                <h6>{{ msg.subject }}</h6>
+                            </div>
+                            <div class="message-content small">
+                                {{ msg.content|truncate(100, True) }}
+                                <a href="{{ url_for('message_view', message_id=msg.id) }}" class="text-decoration-none">View</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-scroll to the bottom of the conversation history
+    document.addEventListener('DOMContentLoaded', function() {
+        var conversationHistory = document.querySelector('.conversation-history');
+        if (conversationHistory) {
+            conversationHistory.scrollTop = conversationHistory.scrollHeight;
+        }
+    });
+</script>
+{% endblock %} 
