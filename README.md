@@ -4,9 +4,9 @@
 SkillSwap is a peer-to-peer skill exchange platform that enables users to share knowledge and skills without monetary transactions. Users can offer skills they are proficient in (e.g., coding, photography, fitness training) and request skills they want to learn (e.g., language learning, cooking, graphic design). The platform fosters community-driven learning and collaboration.
 
 ## 🏗️ Tech Stack
-- **Frontend:** HTML, CSS, Bootstrap
-- **Backend:** Python / Flask
-- **Database:** SQLite with SQLAlchemy
+- **Frontend:** HTML, CSS, Bootstrap         (pug)
+- **Backend:** Python / Flask  (We  Have to use JAVA Script) 
+- **Database:** SQLite with SQLAlchemy (MYSQL)
 - **Containerization:** Docker
 - **Version Control:** Git & GitHub
 
